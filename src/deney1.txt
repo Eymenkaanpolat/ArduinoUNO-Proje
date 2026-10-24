@@ -1,0 +1,58 @@
+#include "gpio.h"
+#include "uart.h"
+#include <util/delay.h>
+int main(void)
+{
+  pin_mod('B', 5, 1); // Pin 13 çıkış olarak ayarlanıyor.
+  uart_basla();
+  uint8_t a = 0;
+  char cihaz;
+  uint32_t deger;
+
+  while (1)
+  {
+    deger = uart_harfR(&cihaz);
+    if (cihaz == 'A')
+    {
+      if (deger == 1)
+      {
+        uart_yaz("Com\n");
+        _delay_ms(100);
+      }
+      // a2 yazınca cam yazsın.
+      if (deger == 2)
+      {
+        uart_yaz("Cam\n");
+        _delay_ms(100);
+      }
+    }
+    if (cihaz == 'B')
+    {
+      if (a == 0 && deger == 1)
+      {
+        pinW('B', 5, 1); // Pin 13 HIGH yapılıyor.
+        uart_yaz("Pin 13 HIGH\n");
+        _delay_ms(100);
+        a = 1;
+      }
+
+      else if (a == 1 && deger == 0)
+      {
+        pinW('B', 5, 0); // Pin 13 LOW yapılıyor.
+        uart_yaz("Pin 13 LOW\n");
+        _delay_ms(100);
+        a = 0;
+      }
+      else if (a == 1 && deger == 1)
+      {
+        uart_yaz("Pin 13 zaten HIGH\n");
+        _delay_ms(100);
+      }
+      else if (a == 0 && deger == 0)
+      {
+        uart_yaz("Pin 13 zaten LOW\n");
+        _delay_ms(100);
+      }
+    }
+  }
+}
