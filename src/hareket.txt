@@ -1,0 +1,31 @@
+#include "gpio.h"
+#include <util/delay.h>
+#include "uart.h"
+int main(void)
+{
+    uart_basla();
+    pin_mod('D', 2, 0);
+    pin_mod('D', 3, 1);
+    uint8_t veri = 0;
+    uart_yaz("Test başladı.");
+    uart_yaz("\r\n");
+    _delay_ms(1000);
+    while (1)
+    {
+        veri = pinR('D', 2);
+        if (veri == 1)
+        {
+            uart_yaz("sensör out veriyor.");
+            uart_yaz("\r\n");
+            pinW('D', 3, 1);
+            // _delay_ms(4000);
+        }
+        else
+        {
+            pinW('D', 3, 0);
+        }
+        uart_degerW(veri);
+        uart_yaz("\r\n");
+        
+    }
+}
