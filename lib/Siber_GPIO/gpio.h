@@ -22,4 +22,4 @@ void pinW(char port, uint8_t pin, uint8_t deger);
 // Voltaj oku (port: 'B' veya 'D', pin: 0-7 arası)
 uint8_t pinR(char port, uint8_t pin);
 
-#endif /* GPIO_H_ */
+#endif /* GPIO_H_ */ 
