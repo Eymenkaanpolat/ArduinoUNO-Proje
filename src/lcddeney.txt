@@ -1,0 +1,26 @@
+
+#include "lcd.h"
+#include <util/delay.h>
+#include "analogR.h"
+#include "gpio.h"
+
+
+int main(void)
+{
+   
+    uint32_t sayac = 0;
+
+    lcd_basla();
+
+    lcd_yaz(0, "SAYAC:");
+
+    while (1)
+    {
+        sayac = analogR(0);
+        lcd_degerW(1, sayac);
+        lcd_yaz(1, "     /");
+        lcd_degerW(1, 1023);
+        _delay_ms(100);
+
+    }
+}
