@@ -1,0 +1,63 @@
+#include "gpio.h"
+#include "lcd.h"
+#include <util/delay.h>
+#include "uart.h"
+#include "timer.h"
+volatile uint32_t timerz = 0;
+ISR(TIMER1_COMPA_vect) {
+    if(timerz == 1) {
+    timern = !timern;
+    }
+}
+int main(void)
+{
+    timer1_kesme_basla(4000);
+    
+    lcd_basla();
+    lcd_temizle();
+    pin_mod('D', 4, 0);
+    pin_mod('D', 6, 1);
+    pin_mod('B', 5, 1);
+    uint8_t sec_info = 0;
+    
+    pinW('B', 5, 1);
+    _delay_ms(400);
+    pinW('B', 5, 0);
+    lcd_yaz(0, "SEC Is Starting...");
+    _delay_ms(3000);
+    lcd_yaz(0, "SEC Started.");
+    _delay_ms(1000);
+    lcd_yaz(0, "     -SEC-");
+    
+    while (1)
+    {
+        sec_info = pinR('D', 4);
+        if (timern == 0) {
+            pinW('D', 6, 1);
+            _delay_ms(100);
+            pinW('D', 6, 0);
+            _delay_ms(100);
+            pinW('D', 6, 1);
+            _delay_ms(100);
+            pinW('D', 6, 0);
+            _delay_ms(100);
+        }
+        
+        if (sec_info == 1) {
+            lcd_yaz(1, "-Movement-");
+            pinW('D', 6, 0);
+            _delay_ms(150);
+            pinW('D', 6, 1);
+             timerz = !timerz;
+            _delay_ms(1000);
+          
+        }
+        else {
+            pinW('D', 6, 1);
+           
+            lcd_yaz(1, "-Sleep-");
+        }       
+        
+    }
+    return 0;
+}

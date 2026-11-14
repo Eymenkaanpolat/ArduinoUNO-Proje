@@ -9,5 +9,5 @@ void timer1_kesme_basla(uint16_t milisaniye);
 
 // Zamanlayıcıyı tamamen durdurur
 void timer1_durdur(void);
-
+extern volatile uint32_t timern;
 #endif /* TIMER_H_ */
