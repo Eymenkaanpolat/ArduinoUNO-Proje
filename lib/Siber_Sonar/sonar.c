@@ -6,58 +6,82 @@ volatile uint16_t yukselme_zamani = 0;
 volatile uint16_t dusme_zamani = 0;
 volatile uint16_t havada_gecen_sure = 0;
 volatile uint8_t olcum_bitti_mi = 0;
+volatile uint8_t olcum_hatali_mi = 0; // YENİ: Hata bayrağı kanka
 
-void sonar_basla(void) {
-    // PD4 pinini (Trig) ÇIKIŞ yapıyoruz kanka
+void sonar_basla(void)
+{
     DDRD |= (1 << PD4);
-    // PD2 pinini (Echo / INT0) GİRİŞ yapıyoruz
     DDRD &= ~(1 << PD2);
-    
-    // Timer1 Ayarı: Normal mod, saat hızını 8'e bölüyoruz (Prescaler = 8)
-    // 16MHz / 8 = 2MHz -> Yani Timer1 her 0.5 mikrosaniyede bir 1 artacak kanka.
+
+    // Timer1 Ayarı: Prescaler = 8 (0.5us)
     TCCR1B |= (1 << CS11);
-    
-    // Dış Kesme Ayarı (INT0): Herhangi bir mantıksal değişimde tetiklensin (Any logic change)
-    // Yani Echo pini 1 olunca da kesmeye girecek, 0 olunca da!
+
+    // INT0: Herhangi bir mantıksal değişimde tetiklensin
     EICRA |= (1 << ISC00);
     EICRA &= ~(1 << ISC01);
-    
-    // INT0 kesme şalterini aktif et kanka
+
     EIMSK |= (1 << INT0);
-    
-    // Global kesmeleri aç (Siber kapıları açtık)
     sei();
 }
 
-void sonar_tetikle(void) {
+void sonar_tetikle(void)
+{
     olcum_bitti_mi = 0;
-    
-    // Trig pinine 10 mikrosaniyelik tetikleme darbesi gönderiyoruz kanka
+    olcum_hatali_mi = 0; // Yeni ölçüm için hatayı sıfırla
+
+    // Kanka, Timer'ı sıfırlıyoruz ki her ölçüm temiz başlasın
+    TCNT1 = 0;
+    // Timer taşma bayrağını temizle
+    TIFR1 |= (1 << TOV1);
+
     PORTD |= (1 << PD4);
     _delay_us(10);
     PORTD &= ~(1 << PD4);
 }
 
-// Donanımsal Kesme Alt Programı (Echo pini değiştiği an buraya fırlar)
-ISR(INT0_vect) {
-    if (PIND & (1 << PD2)) {
-        // Echo pini HIGH (1) oldu kanka -> Ses dalgası havaya fırladı, süreyi başlat!
+ISR(INT0_vect)
+{
+    if (PIND & (1 << PD2))
+    {
+        // ECHO HIGH oldu: Yankı başladı
         yukselme_zamani = TCNT1;
-    } else {
-        // Echo pini LOW (0) oldu kanka -> Ses dalgası çarptı geri geldi, süreyi durdur!
+    }
+    else
+    {
+        // ECHO LOW oldu: Yankı bitti
         dusme_zamani = TCNT1;
-        havada_gecen_sure = dusme_zamani - yukselme_zamani;
+
+        // Kanka, İŞTE KRİTİK KONTROL:
+        // Eğer ölçüm sırasında Timer taştıysa (TOV1 = 1 ise),
+        // bu sensörün yankı alamadığı anlamına gelir (38ms bekleme).
+        if (TIFR1 & (1 << TOV1))
+        {
+            olcum_hatali_mi = 1;   // Hata bayrağını kaldır
+            TIFR1 |= (1 << TOV1);  // Bayrağı temizle
+            havada_gecen_sure = 0; // Süreyi sıfırla
+        }
+        else
+        {
+            // Taşma olmadıysa süreyi hesapla
+            havada_gecen_sure = dusme_zamani - yukselme_zamani;
+        }
+
         olcum_bitti_mi = 1;
     }
 }
 
-uint16_t sonar_mesafe_oku(void) {
-    // Timer 2MHz'de çalıştığı için geçen süreyi 2'ye bölerek mikrosaniyeye çeviriyoruz
+uint16_t sonar_mesafe_oku(void)
+{
+    // Kanka, eğer ölçüm hatalıysa (yankı alınamadıysa),
+    // 0 döndürmek yerine "geçersiz" olduğunu belirten bir değer döndürelim.
+    // 0 döndürürsek sensör "önümde bir şey var" sanabiliriz.
+    if (olcum_hatali_mi)
+    {
+        return 999; // Örneğin 999 cm (geçersiz) döndür
+    }
+
     uint32_t mikrosaniye = havada_gecen_sure / 2;
-    
-    // Bizim o virgülsüz siber doğru orantı formülü kanka: (Süre * 0.0343) / 2
-    // İşlemciyi yormamak için: (Süre / 58) bize doğrudan CM verir kanka!
     uint16_t cm = mikrosaniye / 58;
-    
+
     return cm;
 }

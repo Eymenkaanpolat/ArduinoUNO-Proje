@@ -63,7 +63,7 @@ void servo_yaz(char port, uint8_t pin, uint8_t aci)
             case 40: _delay_us(957); pinW(port, pin, 0); _delay_us(19043); break;
             case 41: _delay_us(967); pinW(port, pin, 0); _delay_us(19033); break;
             case 42: _delay_us(978); pinW(port, pin, 0); _delay_us(19022); break;
-            case 43: _delay_us(888); pinW(port, pin, 0); _delay_us(19112); break;
+            case 43: _delay_us(988); pinW(port, pin, 0); _delay_us(19012); break;
             case 44: _delay_us(998); pinW(port, pin, 0); _delay_us(19002); break;
             case 45: _delay_us(1009); pinW(port, pin, 0); _delay_us(18991); break; // Tam 45 derece
             case 46: _delay_us(1019); pinW(port, pin, 0); _delay_us(18981); break;
