@@ -1,0 +1,82 @@
+#include "uart.h"
+#include "sonar.h"
+#include "gpio.h"
+#include "lcd.h"
+#include <util/delay.h>
+#define ledK 6
+#define ledS 3
+#define ledY 5
+int main(void)
+{
+    lcd_basla();
+    uart_basla();
+    lcd_temizle();
+    lcd_yaz(0, "Starting...");
+    pin_mod('D', ledK, 1);
+    pin_mod('D', ledS, 1);
+    pin_mod('D', ledY, 1);
+    sonar_basla();
+    _delay_ms(4000);
+    lcd_yaz(0, "Started");
+    _delay_ms(2000);
+    lcd_yaz(0, "Sonar Opening...");
+    pinW('D', ledY, 1);
+    _delay_ms(550);
+    pinW('D', ledS, 1);
+    _delay_ms(550);
+    pinW('D', ledK, 1);
+    _delay_ms(550);
+    pinW('D', ledY, 0);
+    pinW('D', ledS, 0);
+    pinW('D', ledK, 0);
+    lcd_yaz(0, "Sonar Opened");
+    _delay_ms(2000);
+    
+    while (1)
+    {
+        sonar_tetikle();
+        _delay_ms(60);
+        lcd_yaz(0, "Distance: ");
+        if (olcum_bitti_mi == 1)
+        {
+            uint16_t mesafe = sonar_mesafe_oku();
+            if (/*mesafe == 354 || mesafe == 355 || mesafe == 182 || mesafe == 181 ||*/ mesafe == 999)
+            {
+                lcd_temizle();
+                pinW('D', ledY, 0);
+                pinW('D', ledK, 0);
+                pinW('D', ledS, 0);
+                _delay_ms(100);
+            }
+            else
+            {
+                lcd_degerW(1, mesafe);
+            }
+            if (mesafe < 50)
+            {
+                pinW('D', ledY, 1);
+                pinW('D', ledK, 0);
+                pinW('D', ledS, 0);
+            }
+            if (mesafe < 30)
+            {
+                pinW('D', ledY, 0);
+                pinW('D', ledK, 0);
+                pinW('D', ledS, 1);
+            }
+            if (mesafe < 15)
+            {
+                pinW('D', ledY, 0);
+                pinW('D', ledK, 1);
+                pinW('D', ledS, 0);
+            }
+            if (mesafe > 50)
+            {
+                pinW('D', ledY, 0);
+                pinW('D', ledK, 0);
+                pinW('D', ledS, 0);
+            }
+            _delay_ms(160);
+        }
+    }
+}
