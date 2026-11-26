@@ -8,6 +8,7 @@
 #define BAUD_ORANI 103
 
 void uart_basla(void);
+void uart_calculator(void);
 void uart_harfW(char harf);
 void uart_yaz(const char *yazi);
 void uart_degerW(uint32_t sayi);
